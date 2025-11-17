@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blend Your RAW</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Poppins:wght@600;800&display=swap" rel="stylesheet">
+  <style>
+    /* Vibrant RAW-inspired theme */
+    :root{
+      --bg1: linear-gradient(135deg,#FFF1F8 0%, #E8FFF9 100%);
+      --accent-a: #FF3D00;
+      --accent-b: #00E676;
+      --muted:#0f1724;
+      --radius:20px;
+      --brand-logo-size:72px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;font-family:'Inter', 'Poppins', system-ui;background:var(--bg1);overflow-x:hidden;color:var(--muted);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+
+    .container{max-width:1250px;margin:28px auto;position:relative;z-index:2;padding:18px}
+    header{display:flex;align-items:center;gap:18px;margin-bottom:18px}
+    .brand{
+      width:var(--brand-logo-size);height:var(--brand-logo-size);border-radius:12px;
+      display:grid;place-items:center;color:#fff;font-weight:900;font-size:20px;
+      background:linear-gradient(135deg,#FF6B3A,#FF9B6E);
+      box-shadow:0 18px 40px rgba(0,0,0,0.12);
+    }
+    h1{font-size:26px;margin:0}
+    .lead{color:#334155;margin-top:6px}
+
+    .layout{display:grid;grid-template-columns:1fr 520px;gap:28px;align-items:start}
+    @media(max-width:980px){.layout{grid-template-columns:1fr}}
+
+    .panel{background:rgba(255,255,255,0.85);backdrop-filter:blur(6px);border-radius:22px;padding:22px;box-shadow:0 30px 60px rgba(10,20,30,0.06);border:1px solid rgba(255,255,255,0.6)}
+    .section-title{font-weight:900;font-size:18px;margin-bottom:8px}
+    .sub{color:#475569;margin-bottom:12px}
+
+    .chips{display:flex;flex-wrap:wrap;gap:12px}
+    .chip{display:flex;gap:12px;align-items:center;padding:10px 14px;border-radius:999px;background:linear-gradient(135deg,#fff,#FFF9F2);cursor:pointer;border:2px solid rgba(255,255,255,0.45);box-shadow:0 8px 30px rgba(0,0,0,0.06);outline:none}
+    .chip .dot{width:44px;height:44px;border-radius:12px;color:#fff;font-weight:900;display:grid;place-items:center;font-size:18px}
+    .chip .label{font-weight:800}
+    .chip:hover{transform:translateY(-8px) rotate(-1deg);filter:saturate(1.05)}
+    /* stronger highlight for selected fruit */
+    .chip.selected{
+      box-shadow:0 26px 60px rgba(0,0,0,0.16), 0 0 30px 4px rgba(0,230,118,0.10);
+      transform:scale(1.06);
+      border:3px solid rgba(0,230,118,0.12);
+      animation:pop .28s cubic-bezier(.2,.9,.2,1);
+    }
+    @keyframes pop{0%{transform:scale(.98)}100%{transform:scale(1.06)}}
+
+    .life-grid{display:flex;gap:12px;flex-wrap:wrap}
+    .life{padding:12px 14px;border-radius:14px;border:2px dashed rgba(25,25,25,0.06);cursor:pointer;background:linear-gradient(180deg,#FFFFFF,#F8FFF5);font-weight:800}
+    .life.active{box-shadow:0 10px 30px rgba(0,230,118,0.14);border-style:solid;border-color:rgba(0,230,118,0.2);transform:translateY(-6px)}
+
+    .controls{display:flex;gap:12px;align-items:center;margin-top:18px}
+    .btn{padding:12px 18px;border-radius:14px;font-weight:900;border:none;cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,var(--accent-a),#FFB070);color:white;box-shadow:0 14px 40px rgba(255,62,0,0.18)}
+    .btn.ghost{background:transparent;border:2px solid #FF4F00;color:#FF4F00}
+
+    .preview{position:relative}
+    .card-preview{position:relative;border-radius:26px;padding:20px;background:linear-gradient(180deg,#fff,#FFF8F7);box-shadow:0 40px 90px rgba(0,0,0,0.12);display:flex;gap:18px;align-items:center;overflow:visible}
+    .splash{position:absolute;left:12px;top:-26px;width:280px;height:220px;pointer-events:none;opacity:.14}
+
+    .prod-img{width:150px;height:150px;border-radius:18px;object-fit:cover;box-shadow:0 20px 50px rgba(0,0,0,0.12);border:4px solid rgba(255,255,255,0.6);transform:translateZ(0)}
+    .prod-info{flex:1}
+    .prod-title{font-size:20px;font-weight:900;margin:0}
+    .prod-sub{color:#475569;margin-top:6px}
+    .badge{display:inline-block;padding:6px 12px;border-radius:999px;background:linear-gradient(90deg,#00E676,#00C853);color:white;font-weight:900;margin-top:8px}
+
+    .nutrition{display:flex;gap:12px;margin-top:12px}
+    .nut{background:white;padding:12px;border-radius:14px;min-width:120px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,0.08)}
+    .nut strong{font-size:18px;color:#111}
+
+    .share-row{display:flex;gap:12px;align-items:center;margin-top:14px}
+
+    .refs{margin-top:18px;font-weight:700}
+
+    @media(max-width:520px){.prod-img{width:110px;height:110px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <!-- small visible brand text; logo will be used on download card -->
+        RP
+      </div>
+      <div>
+        <h1>Blend Your RAW</h1>
+        <div class="lead">An interactive blend generator with real RAW Pressery SKUs.</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <div class="panel" id="controlsPanel">
+        <div>
+          <div class="section-title">1. Pick up to 3 ingredients</div>
+          <div class="sub">Tap from colorful ingredient badges (emojis included).</div>
+          <div class="chips" id="ingredients"></div>
+        </div>
+
+        <div style="margin-top:18px">
+          <div class="section-title">2. Choose a lifestyle</div>
+          <div class="sub">This helps match a RAW SKU aligned to your goal.</div>
+          <div class="life-grid" id="lifestyles">
+            <div class="life" data-val="fitness">💪 Fitness</div>
+            <div class="life" data-val="detox">🍃 Detox</div>
+            <div class="life" data-val="energy">⚡ Energy</div>
+            <div class="life" data-val="immunity">🛡️ Immunity</div>
+            <div class="life" data-val="casual">😋 Casual</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn primary" id="generate">Shake & Blend</button>
+          <button class="btn ghost" id="reset">Reset</button>
+          <div style="margin-left:auto;color:var(--muted);font-size:14px">Status: <span id="status">Draft</span></div>
+        </div>
+
+        <div class="refs" style="margin-top:14px;font-weight:700">Professor references: RAW Pressery product pages are linked in the prototype.</div>
+      </div>
+
+      <aside class="preview">
+        <div class="card-preview" id="cardPreview">
+          <svg class="splash" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <g fill="none">
+              <ellipse cx="300" cy="200" rx="160" ry="80" fill="#FF7A59" opacity="0.12" />
+              <path d="M120 280 C180 200, 380 160, 480 240 C520 270, 560 240, 560 200 C540 140, 460 120, 400 140 C300 170, 220 240, 120 280 Z" fill="#FFD166" opacity="0.12"/>
+            </g>
+          </svg>
+
+          <img id="prodImg" class="prod-img" src="https://www.rawpressery.com/cdn/shop/products/OJ250ml01.jpg?v=1685693115&width=800" alt="product" />
+          <div class="prod-info">
+            <div class="prod-title" id="productTitle">Your RAW Blend</div>
+            <div class="prod-sub" id="productSub">Pick ingredients and lifestyle to get a curated recommendation.</div>
+            <div class="badge" id="productTag" style="visibility:hidden">RECOMMENDED</div>
+
+            <div class="nutrition" id="nutrition" style="display:none">
+              <div class="nut"><div style="color:#475569;font-size:13px">Calories</div><strong id="cal">--</strong></div>
+              <div class="nut"><div style="color:#475569;font-size:13px">Sugar</div><strong id="sug">--</strong></div>
+              <div class="nut"><div style="color:#475569;font-size:13px">Key</div><strong id="vits">--</strong></div>
+            </div>
+
+            <div class="share-row">
+              <button class="btn primary" id="copyShare">Copy Share Text</button>
+              <button class="btn ghost" id="openProduct">Open Product Page</button>
+              <button class="btn primary" id="downloadCard" style="background:linear-gradient(90deg,#00E676,#00C853);color:#fff">Download Card</button>
+              <div style="margin-left:auto;color:var(--muted);font-size:13px">Share <strong>#JustTheFruitChallenge</strong></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    /* ========== Configuration ========== */
+    // RAW Pressery logo URL (used on the downloadable PNG)
+    // If this host supports cross-origin resource sharing (CORS) you'll get the logo in the PNG.
+    // If the logo can't be loaded due to CORS, download will gracefully degrade to a badge + text.
+    const RAW_LOGO_URL = 'https://www.rawpressery.com/cdn/shop/files/logo.png?v=1660000000';
+    // (If RAW changes their paths you can replace RAW_LOGO_URL with a different valid logo URL.)
+
+    /* ========== Visual helpers & data ========== */
+    const colors = ['#FF4F00','#FFB74D','#00E676','#00B0FF','#7C4DFF','#FF4F00'];
+
+    const INGREDIENTS = ['🍊 Orange','🍎 Apple','🫐 Pomegranate','🥭 Mango','🥕 Carrot','🫛 Spinach','🧄 Ginger','🍍 Pineapple','🥥 Coconut','🟡 Lemon'];
+    const COLOR_MAP = {
+      '🍊 Orange':'#FF6B3A','🍎 Apple':'#59A6FF','🫐 Pomegranate':'#A2415A','🥭 Mango':'#FFB84D',
+      '🥕 Carrot':'#FF9F43','🫛 Spinach':'#35A56A','🧄 Ginger':'#E7B85B','🍍 Pineapple':'#FFC857','🥥 Coconut':'#D6C9B8','🟡 Lemon':'#FFD166'
+    };
+
+    const PRODUCTS = [
+      {sku:'Valencia Orange - 250ml', name:'Valencia Orange', tag:'Energy', cal:110, sug:'12g', vits:'Vit C', infoLink:'https://www.rawpressery.com/products/valencia-orange', image:'https://www.rawpressery.com/cdn/shop/products/OJ250ml01.jpg?v=1685693115&width=800'},
+      {sku:'Pomegranate - 250ml', name:'Pomegranate', tag:'Fitness', cal:100, sug:'11g', vits:'Antioxidants', infoLink:'https://www.rawpressery.com/products/pomegranate-250ml', image:'https://www.rawpressery.com/cdn/shop/products/Pomegranate250ml01.jpg?v=1685696840&width=800'},
+      {sku:'Alphonso Mango - 200ml', name:'Alphonso Mango', tag:'Casual', cal:140, sug:'16g', vits:'Vit A & C', infoLink:'https://www.rawpressery.com/products/mango-200ml', image:'https://wingreensworld.com/cdn/shop/files/alphonsomangofruitdrink.jpg?v=1756382278&width=800'},
+      {sku:'Coconut Water - 200ml', name:'Coconut Water', tag:'Detox', cal:45, sug:'5g', vits:'Electrolytes', infoLink:'https://www.rawpressery.com/products/coconut-water-200ml', image:'https://www.bbassets.com/media/uploads/p/s/40182988_5-raw-pressery-coconut-water-packed-with-electrolytes-boosts-hydration.jpg'},
+      {sku:'Mixed Fruit - 200ml', name:'Mixed Fruit', tag:'Energy', cal:120, sug:'13g', vits:'Multivitamins', infoLink:'https://www.rawpressery.com/products/mixed-fruit-200ml', image:'https://wingreensworld.com/cdn/shop/files/MixedFruit200ml02.jpg?v=1761828202&width=800'}
+    ];
+
+    /* ========== DOM references ========== */
+    const ingWrap = document.getElementById('ingredients');
+    const lifeWrap = document.getElementById('lifestyles');
+    const generateBtn = document.getElementById('generate');
+    const resetBtn = document.getElementById('reset');
+    const status = document.getElementById('status');
+    const productTitle = document.getElementById('productTitle');
+    const productSub = document.getElementById('productSub');
+    const productTag = document.getElementById('productTag');
+    const nutrition = document.getElementById('nutrition');
+    const calEl = document.getElementById('cal');
+    const sugEl = document.getElementById('sug');
+    const vitsEl = document.getElementById('vits');
+    const copyShare = document.getElementById('copyShare');
+    const openProduct = document.getElementById('openProduct');
+    const prodImg = document.getElementById('prodImg');
+    const downloadCard = document.getElementById('downloadCard');
+    const cardPreview = document.getElementById('cardPreview');
+
+    let selected = new Set();
+    let selectedLife = '';
+    let currentProduct = null;
+
+    /* ========== build chips ========== */
+    function createChip(name){
+      const el = document.createElement('div');
+      el.className = 'chip';
+      const color = COLOR_MAP[name] || '#DDD';
+      const dotChar = name.trim().slice(0,2);
+      el.innerHTML = `<div class="dot" style="background:${color}">${dotChar}</div><div class="label">${name}</div>`;
+      el.dataset.name = name;
+      el.tabIndex = 0;
+      el.addEventListener('click', ()=>{
+        if(selected.has(name)) { selected.delete(name); el.classList.remove('selected'); el.style.boxShadow=''; }
+        else {
+          if(selected.size >=3){ el.animate([{transform:'scale(1)'},{transform:'scale(.96)'}],{duration:160,iterations:1}); return; }
+          selected.add(name); el.classList.add('selected');
+          el.style.boxShadow = `0 18px 40px ${color}55`;
+        }
+        // visual highlight of chosen chips
+        status.innerText = 'Draft ('+selected.size+' items)';
+      });
+      return el;
+    }
+    INGREDIENTS.forEach(i=>ingWrap.appendChild(createChip(i)));
+
+    Array.from(lifeWrap.children).forEach(node=>{
+      node.addEventListener('click', ()=>{
+        Array.from(lifeWrap.children).forEach(n=>n.classList.remove('active'));
+        node.classList.add('active');
+        selectedLife = node.dataset.val;
+      })
+    });
+
+    function decideProduct(choices, life){
+      const normalized = choices.map(c => c.replace(/^[^a-zA-Z0-9]+/,'')).map(s=>s.split(' ')[0]);
+      const choiceSet = new Set(normalized);
+      const scored = PRODUCTS.map(p=>{
+        let score = 0;
+        const keywords = {
+          'Valencia Orange': ['Orange','Lemon'],
+          'Pomegranate': ['Pomegranate'],
+          'Alphonso Mango': ['Mango'],
+          'Coconut Water': ['Coconut'],
+          'Mixed Fruit': ['Apple','Pineapple','Mango','Orange']
+        }[p.name] || [];
+        keywords.forEach(k=>{ if(choiceSet.has(k)) score += 1; });
+        if(life && p.tag && life.toLowerCase() === p.tag.toLowerCase()) score += 1.2;
+        return {p,score};
+      });
+      scored.sort((a,b)=>b.score-a.score);
+      if(scored[0].score <= 0) return PRODUCTS[0];
+      return scored[0].p;
+    }
+
+    function burst(n){
+      for(let i=0;i<n;i++){
+        const b = document.createElement('div');
+        b.style.position='absolute'; b.style.width='10px'; b.style.height='10px'; b.style.borderRadius='50%';
+        b.style.background = colors[Math.floor(Math.random()*colors.length)];
+        const rect = prodImg.getBoundingClientRect();
+        b.style.left = (rect.left + window.scrollX + rect.width/2) + 'px';
+        b.style.top = (rect.top + window.scrollY + rect.height/2) + 'px';
+        b.style.zIndex=9999; document.body.appendChild(b);
+        const dx = (Math.random()-0.5)*300; const dy = -50 - Math.random()*200;
+        b.animate([{transform:'translate(0,0) scale(1)', opacity:1},{transform:`translate(${dx}px,${dy}px) scale(.3)`,opacity:0}],{duration:800+Math.random()*600,easing:'cubic-bezier(.2,.8,.2,1)'});
+        setTimeout(()=>b.remove(),1600);
+      }
+    }
+
+    generateBtn.addEventListener('click', ()=>{
+      cardPreview.classList.remove('shake'); void cardPreview.offsetWidth; cardPreview.classList.add('shake');
+      const choices = Array.from(selected);
+      if(choices.length===0){ alert('Please pick at least one ingredient (max 3).'); return; }
+      const res = decideProduct(choices, selectedLife);
+      currentProduct = res;
+      productTitle.innerText = res.name + ' (' + res.sku + ')';
+      productSub.innerText = choices.join(' • ') + (selectedLife?(' — '+ selectedLife.charAt(0).toUpperCase()+selectedLife.slice(1)):'');
+      productTag.style.visibility = 'visible'; productTag.innerText = res.tag.toUpperCase();
+      if(calEl) calEl.innerText = res.cal + ' kcal';
+      if(sugEl) sugEl.innerText = res.sug;
+      if(vitsEl) vitsEl.innerText = res.vits;
+      if(nutrition) nutrition.style.display = 'flex';
+      status.innerText = 'Generated';
+      prodImg.style.opacity = 0; setTimeout(()=>{ prodImg.src = res.image; prodImg.style.opacity = 1; },220);
+      burst(12);
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      selected.clear(); selectedLife='';
+      Array.from(ingWrap.children).forEach(c=>{c.classList.remove('selected'); c.style.boxShadow='';});
+      Array.from(lifeWrap.children).forEach(n=>n.classList.remove('active'));
+      productTitle.innerText = 'Your RAW Blend'; productSub.innerText = 'Pick ingredients and lifestyle to get a curated recommendation.';
+      productTag.style.visibility = 'hidden'; if(nutrition) nutrition.style.display='none'; status.innerText='Draft'; prodImg.src = PRODUCTS[0].image; currentProduct = null;
+    });
+
+    copyShare.addEventListener('click', ()=>{
+      const txt = (currentProduct ? currentProduct.name + ' ('+currentProduct.sku+')\n' : '') + productSub.innerText + '\nTry it! #JustTheFruitChallenge';
+      navigator.clipboard.writeText(txt).then(()=>{ copyShare.innerText = 'Copied ✔'; setTimeout(()=>copyShare.innerText = 'Copy Share Text',1500); }).catch(()=>{ alert('Copy failed — please screenshot the card.') });
+    });
+
+    openProduct.addEventListener('click', ()=>{ if(currentProduct && currentProduct.infoLink) window.open(currentProduct.infoLink,'_blank'); else alert('No product selected to open. Generate a blend first.'); });
+
+    /* ========== DOWNLOAD: attempt to include real SKU image + RAW logo on the PNG ========== */
+    function loadImageWithTimeout(src, timeout = 1500){
+      return new Promise((resolve) => {
+        if(!src){ return resolve({ok:false}); }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        let done = false;
+        const onSuccess = () => { if(done) return; done = true; resolve({ok:true, img}); };
+        const onFail = () => { if(done) return; done = true; resolve({ok:false}); };
+        img.onload = onSuccess;
+        img.onerror = onFail;
+        img.src = src;
+        // timeout fallback
+        setTimeout(()=>{ if(done) return; done = true; resolve({ok:false}); }, timeout);
+      });
+    }
+
+    downloadCard.addEventListener('click', async ()=>{
+      // create canvas
+      const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = 700;
+      const ctx = canvas.getContext('2d');
+
+      // background gradient
+      const g = ctx.createLinearGradient(0,0,1200,700); g.addColorStop(0,'#FFF9F4'); g.addColorStop(1,'#F3FFF6'); ctx.fillStyle = g; ctx.fillRect(0,0,1200,700);
+
+      // decorative outer ring
+      ctx.lineWidth = 22; const ring = ctx.createLinearGradient(0,0,1200,0);
+      ring.addColorStop(0,'#FF4F00'); ring.addColorStop(0.25,'#FFEA00'); ring.addColorStop(0.5,'#00E676'); ring.addColorStop(0.75,'#00B0FF'); ring.addColorStop(1,'#7C4DFF');
+      ctx.strokeStyle = ring; roundRect(ctx,40,40,1120,620,28); ctx.stroke();
+
+      // inner white card
+      ctx.fillStyle = '#FFFFFF'; roundRectFill(ctx,60,60,1080,580,20);
+
+      // try to load logo and product image (may fail due to CORS)
+      const prodSrc = currentProduct ? currentProduct.image : (PRODUCTS[0] && PRODUCTS[0].image);
+      const [prodRes, logoRes] = await Promise.all([
+        loadImageWithTimeout(prodSrc, 1800),
+        loadImageWithTimeout(RAW_LOGO_URL, 1800)
+      ]);
+
+      // if product image loaded -> draw it on the left inside a rounded rect area
+      const leftX = 80, leftY = 120, leftW = 240, leftH = 240;
+      if(prodRes.ok){
+        // draw a soft rounded rectangle behind image
+        ctx.save();
+        roundRect(ctx,leftX-6,leftY-6,leftW+12,leftH+12,18); ctx.clip();
+        // draw background behind image
+        ctx.fillStyle = '#FFF7F2'; ctx.fillRect(leftX-6,leftY-6,leftW+12,leftH+12);
+        // draw image centered and cropped preserving aspect
+        const img = prodRes.img;
+        // compute cover-fit
+        const ratio = Math.max(leftW / img.width, leftH / img.height);
+        const iw = img.width * ratio, ih = img.height * ratio;
+        const ix = leftX - (iw - leftW)/2, iy = leftY - (ih - leftH)/2;
+        ctx.drawImage(img, ix, iy, iw, ih);
+        ctx.restore();
+      } else {
+        // fallback: colored badge circle
+        const badgeX = 200, badgeY = 220, badgeR = 100;
+        ctx.fillStyle = '#FF6B3A'; ctx.beginPath(); ctx.arc(badgeX,badgeY,badgeR,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 72px Poppins, Inter'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(currentProduct?currentProduct.name.charAt(0):'R', badgeX, badgeY);
+      }
+
+      // draw Raw Pressery logo (if loaded) top-right of inner card
+      if(logoRes.ok){
+        const logoW = 160, logoH = 50;
+        const lx = 1020 - logoW, ly = 80;
+        try {
+          ctx.drawImage(logoRes.img, lx, ly, logoW, logoH);
+        } catch(e){
+          // if draw fails due to taint, ignore silently; fallback to text
+          ctx.fillStyle = '#111827'; ctx.font = '700 18px Inter'; ctx.fillText('RAW Pressery', 920, 110);
+        }
+      } else {
+        ctx.fillStyle = '#111827'; ctx.font = '700 18px Inter'; ctx.fillText('RAW Pressery', 920, 110);
+      }
+
+      // product title & sku (to right of image area)
+      ctx.fillStyle='#0F1724'; ctx.font='bold 36px Poppins, Inter'; ctx.textAlign='left';
+      ctx.fillText(currentProduct?currentProduct.name:'RAW Classic — Apple', 360, 150);
+      ctx.font='600 22px Inter'; ctx.fillStyle='#374151';
+      ctx.fillText(currentProduct?currentProduct.sku:'Valencia Orange - 250ml', 360, 190);
+
+      // ingredients line
+      ctx.font='600 20px Inter'; ctx.fillStyle='#374151';
+      const ingText = document.getElementById('productSub').innerText || '';
+      wrapText(ctx, ingText, 360, 230, 760, 26);
+
+      // nutrition boxes
+      const nx = 360; const ny = 300; const boxW = 240; const boxH = 90; const pad = 20;
+      const items = [
+        ['Calories', (calEl && calEl.innerText) || '--'],
+        ['Sugar', (sugEl && sugEl.innerText) || '--'],
+        ['Key', (vitsEl && vitsEl.innerText) || '--']
+      ];
+      items.forEach((it,i)=>{
+        const x = nx + i*(boxW+20); const y = ny;
+        ctx.fillStyle = '#FBFBFB'; roundRectFill(ctx,x,y,boxW,boxH,14);
+        ctx.font = '700 18px Inter'; ctx.fillStyle = '#111827'; ctx.fillText(it[0], x+pad, y+32);
+        ctx.font = '800 22px Inter'; ctx.fillText(it[1], x+pad, y+62);
+      });
+
+      // decorative fruit splash (simple ellipse) behind elements
+      ctx.fillStyle = 'rgba(255,122,89,0.06)'; ctx.beginPath(); ctx.ellipse(220,120,120,60,0,0,Math.PI*2); ctx.fill();
+
+      // footer CTA & small logo mark on bottom-left
+      ctx.fillStyle='#0F1724'; ctx.font='700 18px Inter'; ctx.fillText('#JustTheFruitChallenge • BlendYourRAW', 80, 640);
+
+      // trigger download
+      canvas.toBlob(function(blob){
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        const name = (currentProduct? currentProduct.name.replace(/\s+/g,'_') : 'RAW_blend') + '.png';
+        a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      }, 'image/png');
+
+    });
+
+    // helper: wrap text within width
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+      const words = text.split(' ');
+      let line = '';
+      for(let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+          ctx.fillText(line, x, y);
+          line = words[n] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, y);
+    }
+
+    // drawing rounded rect helpers
+    function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+    function roundRectFill(ctx,x,y,w,h,r){ roundRect(ctx,x,y,w,h,r); ctx.fill(); }
+
+    // initial state
+    document.getElementById('productTitle').innerText = 'Your RAW Blend';
+    document.getElementById('productSub').innerText = 'Pick ingredients and lifestyle to get a curated recommendation.';
+    status.innerText = 'Draft';
+    prodImg.src = PRODUCTS[0].image;
+
+    // keyboard support
+    document.addEventListener('keyup', e=>{ if(e.key==='Enter'){ const focused = document.activeElement; if(focused && focused.classList.contains('chip')) focused.click(); } });
+  </script>
+</body>
+</html>
